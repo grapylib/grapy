@@ -9,8 +9,8 @@ class Vertice(pygame.sprite.Sprite):
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
             self.click = False
-            self.img1=pygame.image.load('img/vminb.png').convert_alpha()
-            self.img2=pygame.image.load('img/vminr.png').convert_alpha()
+            self.img1=pygame.image.load('grapy/img/vminb.png').convert_alpha()
+            self.img2=pygame.image.load('grapy/img/vminr.png').convert_alpha()
             self.image = self.img1
             self.rect = self.image.get_rect()
 
@@ -30,19 +30,17 @@ class Vertice(pygame.sprite.Sprite):
                 
 
 def seleccion(pantalla):
-    vb=pygame.image.load('img/vb.png').convert_alpha()    
+    vb=pygame.image.load('grapy/img/vb.png').convert_alpha()    
     pantalla.blit(vb,(5,10))
     
 
-<<<<<<< HEAD
-=======
+
 def main(pantalla,v):
         #Captura de teclas
         Lienzo(v)
         pantalla.fill(BLANCO)
         seleccion(pantalla)
         v.update(pantalla)
->>>>>>> 271dcfaaf80f7718cea687af06fcff824cbd31e4
         
 def Lienzo(cuadro):
         for event in pygame.event.get():
@@ -58,9 +56,8 @@ def Lienzo(cuadro):
             elif event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
 
-<<<<<<< HEAD
-=======
-if __name__ == "__main__":
+
+def Pantalla():
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         pygame.init()
         pantalla = pygame.display.set_mode((1000,600))
@@ -71,4 +68,3 @@ if __name__ == "__main__":
         while 1:
             main(pantalla,v)
             pygame.display.update()
->>>>>>> 271dcfaaf80f7718cea687af06fcff824cbd31e4
