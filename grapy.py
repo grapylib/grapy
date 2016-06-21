@@ -34,6 +34,15 @@ def seleccion(pantalla):
     pantalla.blit(vb,(5,10))
     
 
+<<<<<<< HEAD
+=======
+def main(pantalla,v):
+        #Captura de teclas
+        Lienzo(v)
+        pantalla.fill(BLANCO)
+        seleccion(pantalla)
+        v.update(pantalla)
+>>>>>>> 271dcfaaf80f7718cea687af06fcff824cbd31e4
         
 def Lienzo(cuadro):
         for event in pygame.event.get():
@@ -49,3 +58,17 @@ def Lienzo(cuadro):
             elif event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
 
+<<<<<<< HEAD
+=======
+if __name__ == "__main__":
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
+        pygame.init()
+        pantalla = pygame.display.set_mode((1000,600))
+        reloj = pygame.time.Clock()
+        vertices=pygame.sprite.Group()
+        v = Vertice()
+        v.rect.center = pantalla.get_rect().center
+        while 1:
+            main(pantalla,v)
+            pygame.display.update()
+>>>>>>> 271dcfaaf80f7718cea687af06fcff824cbd31e4
