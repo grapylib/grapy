@@ -3,6 +3,7 @@ import pygame
 
 ROJO=(255,0,0)
 BLANCO=(255,255,255)
+NEGRO=(0,0,0)
 ANCHO=1000
 ALTO=600
 
@@ -12,6 +13,9 @@ class Vertice(pygame.sprite.Sprite):
             pygame.sprite.Sprite.__init__(self)
             self.click = False
             self.sel=False
+            #Necesario para conocer si se esta trazando arco
+            self.arco=False
+            self.c1=False
             self.id=0
             self.img1=pygame.image.load('grapy/img/vminb.png').convert_alpha()
             self.img2=pygame.image.load('grapy/img/vminr.png').convert_alpha()
@@ -26,6 +30,14 @@ class Vertice(pygame.sprite.Sprite):
             else:
                 self.image = self.img1
                 #self.rect = self.image.get_rect()
+                
+            if self.arco:
+                if self.c1:
+                   self.image = self.img2
+                else:
+                   self.image = self.img1
+                
+                
             if self.rect.x > 55:
                 pantalla.blit(self.image,self.rect)
             else:
@@ -36,28 +48,16 @@ class Vertice(pygame.sprite.Sprite):
 class Arco():
         
         def __init__(self):
-            self.i=[0,0]
-            self.f=[0,0]
-            self.ia=[0,0]
-            self.fa=[0,0]
-            self.sel=False
-            self.cambio=False
-            
-        def Inicial(self, p):
-            self.ia=self.i
-            self.i=p
-            self.cambio=True
-        
-        def Final(self, p):
-            self.fa=self.f
-            self.f=p
-            self.cambio=True
+            self.v1=Vertice()
+            self.v2=Vertice()
+     
+        def AdVertices(self,v1, v2):
+            self.v1=v1
+            self.v2=v2
             
         def update(self, pantalla):
-            if self.cambio:
-                pygame.draw.line(pantalla,BLANCO,self.ia, self.fa,1)
-                pygame.draw.line(pantalla,NEGRO,self.i, self.f,1)
-                self.cambio=False
+            pygame.draw.line(pantalla,NEGRO,self.v1.rect.center, self.v2.rect.center,1)
+            
             
         
 
@@ -102,11 +102,18 @@ def Lienzo(pantalla, lista, lsarcos, op):
                 x,y=event.pos
                 #print event.pos
                 if op == 1 or op==3:
-                      for ve in lista:
-                        if ve.rect.collidepoint(event.pos):
-                                ve.click = True
-                                ve.sel=True
-                                #ve.rect.center = pygame.mouse.get_pos()
+                   for ve in lista:
+                       if ve.rect.collidepoint(event.pos):
+                          ve.click = True
+                          ve.sel=True
+                          ve.rect.center = pygame.mouse.get_pos()
+                                
+                if op==2:
+                   for ve in lista:
+                       if ve.rect.collidepoint(event.pos):
+                          ve.arco = True
+                          #ve.c1=True
+                          print ve.id, ' ', ve.arco
                                 
                 if (x<=55) and (y>=0 and y<=55):
                      # Nuevo vertice
@@ -128,22 +135,7 @@ def Lienzo(pantalla, lista, lsarcos, op):
                                   
                 if (x<=55) and (y>55 and y<=110):
                      #opcion 2 Crear arco
-                     nop=2
-                     
-                                
-                     for ve in lista:
-                         if ve.rect.collidepoint(event.pos):
-                                ve.click = True
-                                ve.sel=True
-                                for a in lsarcos:
-                                    if a.sel:
-                                       a.Final(event.pos)
-                                
-                                a=Arco()
-                                a.Inicial(ve.rect.center)
-                                a.Final(event.pos)
-                                a.sel=True
-                                lsarcos.add(a)                  
+                     nop=2                            
                      
                                 
                 if (x<=55) and (y>110 and y<=160):
@@ -162,6 +154,27 @@ def Lienzo(pantalla, lista, lsarcos, op):
                                   ve.rect.right = e.rect.left
                         ve.click=False
                         ve.sel=False
+                
+                    if ve.arco:
+                       if ve.c1==False:
+                           ve.c1=True                           
+                           
+                #verificamos si hay arco
+                con=0
+                for v in lista:
+                    if v.arco:
+                        con+=1
+                if con==2:
+                    ps=[]
+                    for v in lista:
+                        if v.arco:
+                           v.arco=False
+                           ps.append(v)
+                           print 'sel: ', v.id, v.rect.center
+                    a=Arco()
+                    a.AdVertices(ps[0],ps[1])
+                    lsarcos.append(a)
+                    print len(lsarcos)  
                         
                 
             elif event.type == pygame.QUIT:
@@ -190,7 +203,8 @@ def Pantalla():
             v, arcos, op=Lienzo(pantalla,vertices, arcos, op)
             pantalla.fill(BLANCO)
             seleccion(pantalla, op)
-            v.update(pantalla)
+            
             for a in arcos:
-                a.update()
+                a.update(pantalla)
+            v.update(pantalla)
             pygame.display.update()
