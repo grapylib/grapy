@@ -18,7 +18,7 @@ class Vertice(pygame.sprite.Sprite):
             self.image = self.img1
             self.rect = self.image.get_rect()
 
-        def update(self,surface):
+        def update(self, pantalla):
             if self.click:
                     self.image = self.img2
                     self.rect = self.image.get_rect() 
@@ -27,41 +27,90 @@ class Vertice(pygame.sprite.Sprite):
                 self.image = self.img1
                 #self.rect = self.image.get_rect()
             if self.rect.x > 55:
-                surface.blit(self.image,self.rect)
+                pantalla.blit(self.image,self.rect)
             else:
-                self.rect.x=55
-                surface.blit(self.image,self.rect)
+                self.rect.x=56
+                pantalla.blit(self.image,self.rect)
                 
 
-def seleccion(pantalla):
-    vb=pygame.image.load('grapy/img/vb.png').convert_alpha()    
-    pantalla.blit(vb,(5,10))
-    vb=pygame.image.load('grapy/img/ab.png').convert_alpha()    
-    pantalla.blit(vb,(5,60))
+class Arco():
+        
+        def __init__(self):
+            self.i=[0,0]
+            self.f=[0,0]
+            self.ia=[0,0]
+            self.fa=[0,0]
+            self.sel=False
+            self.cambio=False
+            
+        def Inicial(self, p):
+            self.ia=self.i
+            self.i=p
+            self.cambio=True
+        
+        def Final(self, p):
+            self.fa=self.f
+            self.f=p
+            self.cambio=True
+            
+        def update(self, pantalla):
+            if self.cambio:
+                pygame.draw.line(pantalla,BLANCO,self.ia, self.fa,1)
+                pygame.draw.line(pantalla,NEGRO,self.i, self.f,1)
+                self.cambio=False
+            
+        
+
+def seleccion(pantalla, op):
+    if op == 1:
+       vb=pygame.image.load('grapy/img/vbsel.png').convert_alpha()    
+       pantalla.blit(vb,(5,10))
+       vb=pygame.image.load('grapy/img/ab.png').convert_alpha()    
+       pantalla.blit(vb,(5,60))
+       vb=pygame.image.load('grapy/img/apn.png').convert_alpha()    
+       pantalla.blit(vb,(5,110))
+    if op == 2:
+       vb=pygame.image.load('grapy/img/vb.png').convert_alpha()    
+       pantalla.blit(vb,(5,10))
+       vb=pygame.image.load('grapy/img/absel.png').convert_alpha()    
+       pantalla.blit(vb,(5,60))
+       vb=pygame.image.load('grapy/img/apn.png').convert_alpha()    
+       pantalla.blit(vb,(5,110))
+    if op == 3:
+       vb=pygame.image.load('grapy/img/vb.png').convert_alpha()    
+       pantalla.blit(vb,(5,10))
+       vb=pygame.image.load('grapy/img/ab.png').convert_alpha()    
+       pantalla.blit(vb,(5,60))
+       vb=pygame.image.load('grapy/img/apnsel.png').convert_alpha()    
+       pantalla.blit(vb,(5,110))
     
 
 
-def Principal(pantalla,v):
+def Principal(pantalla,v,op):
         #Captura de teclas
-        v=Lienzo(pantalla,v)
+        v, op=Lienzo(pantalla,v, op)
         pantalla.fill(BLANCO)
-        seleccion(pantalla)
+        seleccion(pantalla, op)
         v.update(pantalla)
         #print len(v)
         return v
         
-def Lienzo(pantalla, lista):
+def Lienzo(pantalla, lista, lsarcos, op):
+        nop=op
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x,y=event.pos
-                for ve in lista:
+                #print event.pos
+                if op == 1 or op==3:
+                      for ve in lista:
                         if ve.rect.collidepoint(event.pos):
                                 ve.click = True
                                 ve.sel=True
                                 #ve.rect.center = pygame.mouse.get_pos()
                                 
-                if x<=55 and y<=55:
+                if (x<=55) and (y>=0 and y<=55):
                      # Nuevo vertice
+                     nop=1
                      v = Vertice()
                      #v.rect.center = pantalla.get_rect().center
                      v.rect.center = (55,50)
@@ -75,11 +124,33 @@ def Lienzo(pantalla, lista):
                                if v.id != e.id:
                                   v.rect.left = e.rect.right
                                   col=True
+                                  
+                                  
+                if (x<=55) and (y>55 and y<=110):
+                     #opcion 2 Crear arco
+                     nop=2
                      
-                     #lista.add(v)
+                                
+                     for ve in lista:
+                         if ve.rect.collidepoint(event.pos):
+                                ve.click = True
+                                ve.sel=True
+                                for a in lsarcos:
+                                    if a.sel:
+                                       a.Final(event.pos)
+                                
+                                a=Arco()
+                                a.Inicial(ve.rect.center)
+                                a.Final(event.pos)
+                                a.sel=True
+                                lsarcos.add(a)                  
                      
+                                
+                if (x<=55) and (y>110 and y<=160):
+                     #opcion 3 apuntador
+                     nop=3
                      
-                
+
             elif event.type == pygame.MOUSEBUTTONUP:
                 for ve in lista:
                     if ve.sel==True:
@@ -91,11 +162,13 @@ def Lienzo(pantalla, lista):
                                   ve.rect.right = e.rect.left
                         ve.click=False
                         ve.sel=False
+                        
+                
             elif event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
-                
-        #colision=pygame.sprite.spritecollide(player, block_list, True)
-        return lista
+        
+            #print nop
+        return lista, lsarcos, nop
 
 
 def Pantalla():
@@ -104,6 +177,8 @@ def Pantalla():
         pantalla = pygame.display.set_mode((ANCHO, ALTO))
         reloj = pygame.time.Clock()
         vertices=pygame.sprite.Group()
+        arcos=[]
+        op=1
         '''
         v = Vertice()
         v.rect.center = pantalla.get_rect().center
@@ -111,5 +186,11 @@ def Pantalla():
         vertices.add(v)
         '''
         while 1:
-            vertices=Principal(pantalla,vertices)
+            #vertices=Principal(pantalla,vertices, op)
+            v, arcos, op=Lienzo(pantalla,vertices, arcos, op)
+            pantalla.fill(BLANCO)
+            seleccion(pantalla, op)
+            v.update(pantalla)
+            for a in arcos:
+                a.update()
             pygame.display.update()
