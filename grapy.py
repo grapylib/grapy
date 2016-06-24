@@ -15,12 +15,17 @@ class Vertice(pygame.sprite.Sprite):
             self.sel=False
             #Necesario para conocer si se esta trazando arco
             self.arco=False
-            self.c1=False
+            self.conexos=[]
+            self.grado=len(self.conexos)
             self.id=0
             self.img1=pygame.image.load('grapy/img/vminb.png').convert_alpha()
             self.img2=pygame.image.load('grapy/img/vminr.png').convert_alpha()
             self.image = self.img1
             self.rect = self.image.get_rect()
+            
+        def adArco(self, a):
+            self.conexos.append(a)
+            self.grado=len(self.conexos)
 
         def update(self, pantalla):
             if self.click:
@@ -32,14 +37,15 @@ class Vertice(pygame.sprite.Sprite):
                 #self.rect = self.image.get_rect()
                 
             if self.arco:
-                if self.c1:
-                   self.image = self.img2
-                else:
-                   self.image = self.img1
+                self.image = self.img2
+            else:
+                self.image = self.img1
                 
-                
-            if self.rect.x > 55:
+            fuente = pygame.font.Font(None, 28)
+            texto = fuente.render(str(self.grado), 0, NEGRO)
+            if self.rect.x > 55:                
                 pantalla.blit(self.image,self.rect)
+                pantalla.blit(texto, (self.rect.x-8,self.rect.y-10))
             else:
                 self.rect.x=56
                 pantalla.blit(self.image,self.rect)
@@ -50,10 +56,14 @@ class Arco():
         def __init__(self):
             self.v1=Vertice()
             self.v2=Vertice()
+            self.color=NEGRO
      
         def AdVertices(self,v1, v2):
             self.v1=v1
             self.v2=v2
+            
+        def defColor(self, c):
+            self.color=c
             
         def update(self, pantalla):
             pygame.draw.line(pantalla,NEGRO,self.v1.rect.center, self.v2.rect.center,1)
@@ -111,8 +121,11 @@ def Lienzo(pantalla, lista, lsarcos, op):
                 if op==2:
                    for ve in lista:
                        if ve.rect.collidepoint(event.pos):
-                          ve.arco = True
-                          #ve.c1=True
+                          if ve.arco:
+                             ve.arco=False
+                          else:
+                             ve.arco = True
+                          
                           print ve.id, ' ', ve.arco
                                 
                 if (x<=55) and (y>=0 and y<=55):
@@ -155,9 +168,6 @@ def Lienzo(pantalla, lista, lsarcos, op):
                         ve.click=False
                         ve.sel=False
                 
-                    if ve.arco:
-                       if ve.c1==False:
-                           ve.c1=True                           
                            
                 #verificamos si hay arco
                 con=0
@@ -169,11 +179,19 @@ def Lienzo(pantalla, lista, lsarcos, op):
                     for v in lista:
                         if v.arco:
                            v.arco=False
+                           v.sel=False
                            ps.append(v)
                            print 'sel: ', v.id, v.rect.center
-                    a=Arco()
-                    a.AdVertices(ps[0],ps[1])
-                    lsarcos.append(a)
+                    if ps[0].id != ps[1].id:
+                       print 'no circular' 
+                       a=Arco()
+                       a.AdVertices(ps[0],ps[1])
+                       lsarcos.append(a)
+                       for p in ps:
+                         for v in lista:
+                             if v.id == p.id:
+                                v.adArco(p)
+                        
                     print len(lsarcos)  
                         
                 
@@ -184,7 +202,8 @@ def Lienzo(pantalla, lista, lsarcos, op):
         return lista, lsarcos, nop
 
 
-def Pantalla():
+#Modo edicion de grafo
+def Editar():
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         pygame.init()
         pantalla = pygame.display.set_mode((ANCHO, ALTO))
@@ -202,9 +221,13 @@ def Pantalla():
             #vertices=Principal(pantalla,vertices, op)
             v, arcos, op=Lienzo(pantalla,vertices, arcos, op)
             pantalla.fill(BLANCO)
-            seleccion(pantalla, op)
-            
+            seleccion(pantalla, op)            
             for a in arcos:
                 a.update(pantalla)
             v.update(pantalla)
             pygame.display.update()
+        #construimos arreglo de vertices y arcos para trabajo
+        
+        return vertices, arcos
+
+
