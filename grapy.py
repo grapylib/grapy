@@ -7,6 +7,7 @@ NEGRO=(0,0,0)
 ANCHO=1000
 ALTO=600
 
+
 class Vertice(pygame.sprite.Sprite):
         
         def __init__(self):
@@ -16,6 +17,7 @@ class Vertice(pygame.sprite.Sprite):
             #Necesario para conocer si se esta trazando arco
             self.arco=False
             self.conexos=[]
+            self.lscon=[]
             self.grado=len(self.conexos)
             self.id=0
             self.img1=pygame.image.load('grapy/img/vminb.png').convert_alpha()
@@ -26,6 +28,14 @@ class Vertice(pygame.sprite.Sprite):
         def adArco(self, a):
             self.conexos.append(a)
             self.grado=len(self.conexos)
+            v=V()
+            v.id=self.id
+            v.grado=self.grado
+            v.arcos.append((v.id,a.id))
+            self.lscon.append(v)
+            
+        def retArcos(self):
+            return self.conexos   
 
         def update(self, pantalla):
             if self.click:
@@ -57,18 +67,32 @@ class Arco():
             self.v1=Vertice()
             self.v2=Vertice()
             self.color=NEGRO
+            
      
         def AdVertices(self,v1, v2):
             self.v1=v1
             self.v2=v2
+            self.arco=[v1.id, v2.id]
             
         def defColor(self, c):
             self.color=c
             
         def update(self, pantalla):
             pygame.draw.line(pantalla,NEGRO,self.v1.rect.center, self.v2.rect.center,1)
-            
-            
+
+
+      
+class V():
+        def __init__(self):
+           self.id=0
+           self.grado=0
+           self.arcos=[]
+         
+class E():
+        def __init__(self):
+           self.e=[]
+           
+
         
 
 def seleccion(pantalla, op):
@@ -96,16 +120,8 @@ def seleccion(pantalla, op):
     
 
 
-def Principal(pantalla,v,op):
-        #Captura de teclas
-        v, op=Lienzo(pantalla,v, op)
-        pantalla.fill(BLANCO)
-        seleccion(pantalla, op)
-        v.update(pantalla)
-        #print len(v)
-        return v
         
-def Lienzo(pantalla, lista, lsarcos, op):
+def Lienzo(pantalla, lista, lsarcos, op, fin):
         nop=op
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -126,13 +142,11 @@ def Lienzo(pantalla, lista, lsarcos, op):
                           else:
                              ve.arco = True
                           
-                          print ve.id, ' ', ve.arco
                                 
                 if (x<=55) and (y>=0 and y<=55):
                      # Nuevo vertice
                      nop=1
                      v = Vertice()
-                     #v.rect.center = pantalla.get_rect().center
                      v.rect.center = (55,50)
                      v.id=len(lista)
                      lista.add(v)
@@ -168,7 +182,6 @@ def Lienzo(pantalla, lista, lsarcos, op):
                         ve.click=False
                         ve.sel=False
                 
-                           
                 #verificamos si hay arco
                 con=0
                 for v in lista:
@@ -181,9 +194,7 @@ def Lienzo(pantalla, lista, lsarcos, op):
                            v.arco=False
                            v.sel=False
                            ps.append(v)
-                           print 'sel: ', v.id, v.rect.center
                     if ps[0].id != ps[1].id:
-                       print 'no circular' 
                        a=Arco()
                        a.AdVertices(ps[0],ps[1])
                        lsarcos.append(a)
@@ -191,16 +202,39 @@ def Lienzo(pantalla, lista, lsarcos, op):
                          for v in lista:
                              if v.id == p.id:
                                 v.adArco(p)
-                        
-                    print len(lsarcos)  
-                        
+                    #print len(lsarcos)       
                 
             elif event.type == pygame.QUIT:
-                pygame.quit(); sys.exit()
+                fin=True
         
             #print nop
-        return lista, lsarcos, nop
+        return lista, lsarcos, nop, fin
 
+
+def ListaVertices(lista):
+        vl=[]
+        for v in lista:
+            vl.append(v.id)
+        return vl
+
+def ListaArcos(lista):
+        al=[]
+        for a in lista:
+            arco=a.arco
+            al.append(arco)
+        return al
+
+def ResumenV(l):
+    lv=[]
+    for v in l:
+        #lista de vertices conexos
+        lcon=v.lscon
+        '''
+        for e in lcon:
+            print e.id
+        '''
+        lv.append(v.id)
+    return lv
 
 #Modo edicion de grafo
 def Editar():
@@ -211,23 +245,18 @@ def Editar():
         vertices=pygame.sprite.Group()
         arcos=[]
         op=1
-        '''
-        v = Vertice()
-        v.rect.center = pantalla.get_rect().center
-        v.sel=True
-        vertices.add(v)
-        '''
-        while 1:
+        fin =False
+        while not fin:
             #vertices=Principal(pantalla,vertices, op)
-            v, arcos, op=Lienzo(pantalla,vertices, arcos, op)
+            vertices, arcos, op, fin=Lienzo(pantalla,vertices, arcos, op, fin)
             pantalla.fill(BLANCO)
             seleccion(pantalla, op)            
             for a in arcos:
                 a.update(pantalla)
-            v.update(pantalla)
+            vertices.update(pantalla)
             pygame.display.update()
         #construimos arreglo de vertices y arcos para trabajo
-        
+        lv=ResumenV(vertices)
         return vertices, arcos
 
 
