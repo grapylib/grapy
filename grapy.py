@@ -1,5 +1,6 @@
 import os,sys
 import pygame
+import inputbox
 
 ROJO=(255,0,0)
 BLANCO=(255,255,255)
@@ -67,6 +68,7 @@ class Arco():
             self.v1=Vertice()
             self.v2=Vertice()
             self.color=NEGRO
+            self.peso=0
             
      
         def AdVertices(self,v1, v2):
@@ -77,8 +79,30 @@ class Arco():
         def defColor(self, c):
             self.color=c
             
+        def pmedio(self, p1,p2):
+            x1=p1[0]
+            y1=p1[1]
+            x2=p2[0]
+            y2=p2[1]
+            sx=abs(x1-x2)/2
+            sy=abs(y1-y2)/2
+            if x1<x2:
+               px=x1+sx
+            else:
+               px=x2+sx
+            if y1<y2:
+               py=y1+sy
+            else:
+               py=y2+sy
+            p=(px,py)
+            return p
+            
         def update(self, pantalla):
+            fuente = pygame.font.Font(None, 28)
+            texto = fuente.render(str(self.peso), 0, NEGRO)
             pygame.draw.line(pantalla,NEGRO,self.v1.rect.center, self.v2.rect.center,1)
+            p=self.pmedio(self.v1.rect.center, self.v2.rect.center)
+            pantalla.blit(texto, p)
 
 
       
@@ -101,22 +125,37 @@ def seleccion(pantalla, op):
        pantalla.blit(vb,(5,10))
        vb=pygame.image.load('grapy/img/ab.png').convert_alpha()    
        pantalla.blit(vb,(5,60))
-       vb=pygame.image.load('grapy/img/apn.png').convert_alpha()    
+       vb=pygame.image.load('grapy/img/apb.png').convert_alpha()    
        pantalla.blit(vb,(5,110))
+       vb=pygame.image.load('grapy/img/apn.png').convert_alpha()    
+       pantalla.blit(vb,(5,160))
     if op == 2:
        vb=pygame.image.load('grapy/img/vb.png').convert_alpha()    
        pantalla.blit(vb,(5,10))
        vb=pygame.image.load('grapy/img/absel.png').convert_alpha()    
        pantalla.blit(vb,(5,60))
-       vb=pygame.image.load('grapy/img/apn.png').convert_alpha()    
+       vb=pygame.image.load('grapy/img/apb.png').convert_alpha()    
        pantalla.blit(vb,(5,110))
+       vb=pygame.image.load('grapy/img/apn.png').convert_alpha()    
+       pantalla.blit(vb,(5,160))
     if op == 3:
        vb=pygame.image.load('grapy/img/vb.png').convert_alpha()    
        pantalla.blit(vb,(5,10))
        vb=pygame.image.load('grapy/img/ab.png').convert_alpha()    
        pantalla.blit(vb,(5,60))
-       vb=pygame.image.load('grapy/img/apnsel.png').convert_alpha()    
+       vb=pygame.image.load('grapy/img/apbsel.png').convert_alpha()    
        pantalla.blit(vb,(5,110))
+       vb=pygame.image.load('grapy/img/apn.png').convert_alpha()    
+       pantalla.blit(vb,(5,160))
+    if op == 5:
+       vb=pygame.image.load('grapy/img/vb.png').convert_alpha()    
+       pantalla.blit(vb,(5,10))
+       vb=pygame.image.load('grapy/img/ab.png').convert_alpha()    
+       pantalla.blit(vb,(5,60))
+       vb=pygame.image.load('grapy/img/apb.png').convert_alpha()    
+       pantalla.blit(vb,(5,110))
+       vb=pygame.image.load('grapy/img/apnsel.png').convert_alpha()    
+       pantalla.blit(vb,(5,160))
     
 
 
@@ -127,7 +166,7 @@ def Lienzo(pantalla, lista, lsarcos, op, fin):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x,y=event.pos
                 #print event.pos
-                if op == 1 or op==3:
+                if op == 1 or op==5:
                    for ve in lista:
                        if ve.rect.collidepoint(event.pos):
                           ve.click = True
@@ -141,6 +180,16 @@ def Lienzo(pantalla, lista, lsarcos, op, fin):
                              ve.arco=False
                           else:
                              ve.arco = True
+                             
+                if op==3:
+                   for ve in lista:
+                       if ve.rect.collidepoint(event.pos):
+                          if ve.arco:
+                             ve.arco=False
+                          else:
+                             ve.arco = True
+                   
+                   
                           
                                 
                 if (x<=55) and (y>=0 and y<=55):
@@ -168,6 +217,10 @@ def Lienzo(pantalla, lista, lsarcos, op, fin):
                 if (x<=55) and (y>110 and y<=160):
                      #opcion 3 apuntador
                      nop=3
+                     
+                if (x<=55) and (y>160 and y<=210):
+                     #opcion 3 apuntador
+                     nop=5
                      
 
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -197,6 +250,13 @@ def Lienzo(pantalla, lista, lsarcos, op, fin):
                     if ps[0].id != ps[1].id:
                        a=Arco()
                        a.AdVertices(ps[0],ps[1])
+                       if op==3:
+                          inp = inputbox.ask(pantalla, 'Peso ')
+                          if len(inp)==0:
+                             a.peso=0
+                          else:      
+                             a.peso=int(inp)
+                          #print type(inp)
                        lsarcos.append(a)
                        for p in ps:
                          for v in lista:
